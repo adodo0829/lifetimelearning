@@ -1,0 +1,5 @@
+/* table td 超出隐藏, table必须有宽度 */
+table {
+    table-layout: fixed;
+    width: 1000px;
+}
