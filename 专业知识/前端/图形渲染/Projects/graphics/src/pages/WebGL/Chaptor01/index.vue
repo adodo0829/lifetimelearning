@@ -1,5 +1,5 @@
 <template>
-  <div>www22222</div>
+  <h1>绘制点</h1>
 </template>
 
 <script>
