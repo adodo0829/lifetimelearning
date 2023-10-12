@@ -1,5 +1,5 @@
 <template>
-  <h3>draw node</h3>
+  <h3>draw dynamic node</h3>
   <canvas id="node" width="300" height="300"></canvas>
 </template>
 
@@ -37,19 +37,19 @@ export default {
     },
     initShader() {
       let vertexString = `
-        attribute vec4 a_position;
-        uniform     mat4    proj;
-        void main(void) {
-            gl_Position = proj *  a_position;
-            gl_PointSize = 20.0;
-        }
-        `;
+          attribute vec4 a_position;
+          uniform     mat4    proj;
+          void main(void) {
+              gl_Position = proj *  a_position;
+              gl_PointSize = 20.0;
+          }
+          `;
 
       let fragmentString = `
-        void main(void) {
-          gl_FragColor = vec4(1.0,0,0,1.0);
-        }
-        `;
+          void main(void) {
+            gl_FragColor = vec4(1.0,0,0,1.0);
+          }
+          `;
 
       // 创建&装载着色器
       let vshader = gl.createShader(gl.VERTEX_SHADER);
@@ -82,6 +82,13 @@ export default {
     },
 
     initBuffer() {
+      let points = [];
+
+      // 获取鼠标位置
+      document.getElementById("node").addEventListener("click", (e) => {
+        console.log("eeee", e);
+      });
+
       // 准备数据， 值在-1和1之间
       let pointPosition = new Float32Array([150, 150, 0, 1.0]);
       // 获取gpu着色器代码的变量地址

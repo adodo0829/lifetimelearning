@@ -9,6 +9,7 @@ import Canvas02 from "@/pages/Canvas/Ch02/index.vue";
 
 import WebGL from "@/pages/WebGL/index.vue";
 import WebGL01 from "@/pages/WebGL/Chaptor01/index.vue";
+import WebGL02 from "@/pages/WebGL/Chaptor02/index.vue";
 
 const router = createRouter({
   history: routerHistory,
@@ -45,6 +46,11 @@ const router = createRouter({
           path: "/webgl01",
           name: "WebGL-01",
           component: WebGL01,
+        },
+        {
+          path: "/webgl02",
+          name: "WebGL-02",
+          component: WebGL02,
         },
       ],
     },
