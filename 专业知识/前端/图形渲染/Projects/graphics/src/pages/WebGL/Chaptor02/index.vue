@@ -40,6 +40,7 @@ export default {
           attribute vec4 a_position;
           uniform     mat4    proj;
           void main(void) {
+              // 乘以投影坐标系
               gl_Position = proj *  a_position;
               gl_PointSize = 20.0;
           }
@@ -83,19 +84,43 @@ export default {
 
     initBuffer() {
       let points = [];
-
+      let aPsotion = gl.getAttribLocation(gl.program, "a_position");
       // 获取鼠标位置
       document.getElementById("node").addEventListener("click", (e) => {
-        console.log("eeee", e);
+        const mx = e.clientX;
+        const my = e.clientY;
+        console.log(mx, my);
+        // 使用了投影坐标系后，就可画布坐标系一致了，不需要在做装换了
+        // 如果不乘矩阵, 就需要转换到-1和1之间
+        // let pointx = ((x - rect.left) - reac.width/2) / reac.width/2;
+        // let pointy = (rect.height/2 - (y - rect.top)) / rect.height/2;
+        let rect = e.target.getBoundingClientRect();
+        const px = mx - rect.left;
+        const py = my - rect.top;
+        console.log(px, py);
+        points.push(px, py, 0);
+
+        let pointPosition = new Float32Array(points);
+
+        // 传递多个数据
+        // 可创建并初始化一个用于储存顶点数据或着色数据的WebGLBuffer对象
+        let pointBuffer = gl.createBuffer();
+        // 方法将给定的 WebGLBuffer 绑定到目标
+        gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+        // 创建并初始化了 Buffer 对象的数据存储区。
+        gl.bufferData(gl.ARRAY_BUFFER, pointPosition, gl.STATIC_DRAW);
+        // 可以打开属性数组列表中指定索引处的通用顶点属性数组。
+        // 无论怎样，都需要你使用 enableVertexAttribArray() 方法，来激活每一个属性以便使用，不被激活的属性是不会被使用的。
+        // 一旦激活，以下其他方法就可以获取到属性的值了，包括vertexAttribPointer()、vertexAttrib*() 和 getVertexAttrib() (en-US)。
+        gl.enableVertexAttribArray(aPsotion);
+        // 告诉显卡从当前绑定的缓冲区（bindBuffer() 指定的缓冲区）中读取顶点数据。
+        gl.vertexAttribPointer(aPsotion, 3, gl.FLOAT, false, 0, 0);
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, points.length / 3);
       });
 
-      // 准备数据， 值在-1和1之间
-      let pointPosition = new Float32Array([150, 150, 0, 1.0]);
-      // 获取gpu着色器代码的变量地址
-      let aPsotion = gl.getAttribLocation(gl.program, "a_position");
-      // 为顶点 attibute 变量赋值
-      gl.vertexAttrib4fv(aPsotion, pointPosition);
-      // 同上
       let uniformProj = gl.getUniformLocation(gl.program, "proj");
       gl.uniformMatrix4fv(uniformProj, false, projMat4);
     },
