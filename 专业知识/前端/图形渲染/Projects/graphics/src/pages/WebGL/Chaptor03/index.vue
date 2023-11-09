@@ -1,6 +1,12 @@
 <template>
   <h3>draw node</h3>
   <canvas id="node" width="300" height="300"></canvas>
+  <p>
+    requestAnimationFrame特点：
+    【1】requestAnimationFrame会把每一帧中的所有DOM操作集中起来，在一次重绘或回流中就完成，并且重绘或回流的时间间隔紧紧跟随浏览器的刷新频率
+    【2】在隐藏或不可见的元素中，requestAnimationFrame将不会进行重绘或回流，这当然就意味着更少的CPU、GPU和内存使用量
+    【3】requestAnimationFrame是由浏览器专门为动画提供的API，在运行时浏览器会自动优化方法的调用，并且如果页面不是激活状态下的话，动画会自动暂停，有效节省了CPU开销
+  </p>
 </template>
 
 <script>
@@ -83,12 +89,7 @@ export default {
 
     initBuffer() {
       // 准备数据， 值在-1和1之间
-      let lineArray = [
-      50, 50, 0, 
-      150, 100, 0, 
-      200, 200, 0,
-      250,130,0
-    ];
+      let lineArray = [50, 50, 0, 150, 100, 0, 200, 200, 0, 250, 130, 0];
 
       let pointPosition = new Float32Array(lineArray);
 
