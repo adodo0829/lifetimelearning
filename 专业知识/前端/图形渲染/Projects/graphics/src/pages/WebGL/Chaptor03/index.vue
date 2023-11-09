@@ -1,6 +1,6 @@
 <template>
   <h3>draw node</h3>
-  <canvas id="node" width="300" height="300"></canvas>
+  <canvas id="node" width="500" height="500"></canvas>
   <p>
     requestAnimationFrame特点：
     【1】requestAnimationFrame会把每一帧中的所有DOM操作集中起来，在一次重绘或回流中就完成，并且重绘或回流的时间间隔紧紧跟随浏览器的刷新频率

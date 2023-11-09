@@ -11,6 +11,7 @@ import WebGL from "@/pages/WebGL/index.vue";
 import WebGL01 from "@/pages/WebGL/Chaptor01/index.vue";
 import WebGL02 from "@/pages/WebGL/Chaptor02/index.vue";
 import WebGL03 from "@/pages/WebGL/Chaptor03/index.vue";
+import WebGL04 from "@/pages/WebGL/Chaptor04/index.vue";
 
 const router = createRouter({
   history: routerHistory,
@@ -57,6 +58,11 @@ const router = createRouter({
           path: "/webgl03",
           name: "WebGL-03",
           component: WebGL03,
+        },
+        {
+          path: "/webgl04",
+          name: "WebGL-04",
+          component: WebGL04,
         },
       ],
     },
