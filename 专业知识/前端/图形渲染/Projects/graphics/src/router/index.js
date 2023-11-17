@@ -14,6 +14,9 @@ import WebGL03 from "@/pages/WebGL/Chaptor03/index.vue";
 import WebGL04 from "@/pages/WebGL/Chaptor04/index.vue";
 import WebGL05 from "@/pages/WebGL/Chaptor05/index.vue";
 
+import WebGL_M from "@/pages/WebGL_M/index.vue";
+import WebGL_M_01 from "@/pages/WebGL_M/01/index.vue";
+
 const router = createRouter({
   history: routerHistory,
   routes: [
@@ -41,7 +44,7 @@ const router = createRouter({
     },
     {
       path: "/webgl",
-      name: "WebGL初级",
+      name: "WebGL-Junior",
       component: WebGL,
       redirect: "/webgl01",
       children: [
@@ -69,6 +72,18 @@ const router = createRouter({
           path: "/webgl05",
           name: "WebGL纹理",
           component: WebGL05,
+        },
+      ],
+    },
+    {
+      path: "/webgl-m",
+      name: "WebGL-Mid",
+      component: WebGL_M,
+      children: [
+        {
+          path: "/webgl-m-01",
+          name: "多重纹理",
+          component: WebGL_M_01,
         },
       ],
     },

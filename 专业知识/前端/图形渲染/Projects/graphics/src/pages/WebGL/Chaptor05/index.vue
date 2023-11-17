@@ -4,7 +4,6 @@
 </template>
 
 <script>
-// const imgUrl = new URL("./point64.png", import.meta.url).href;
 import imgUrl from "./point64.png";
 
 import { create, ortho } from "@/utils/esm/mat4";
