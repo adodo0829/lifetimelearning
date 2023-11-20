@@ -1,0 +1,160 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: Jsonco
+ * @Date: 2022-05-25 19:54:25
+ * @LastEditors: sueRimn
+ * @LastEditTime: 2022-06-06 17:31:31
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="gl-matrix.js"></script>
+    <script>
+        let vertexstring = `
+        attribute vec4 a_position;
+        uniform mat4 u_formMatrix;
+        uniform mat4 proj;
+        attribute vec4 a_color;
+        varying vec4 color;
+        void main(void){
+            gl_Position =   u_formMatrix * a_position;
+            color = a_color;
+        }
+        `;
+        let fragmentstring = `
+        precision mediump float;
+        varying vec4 color;
+        void main(void){
+          gl_FragColor =color;
+        }
+        `;
+
+        var webgl;
+        var near=40;
+        var far= 0;
+       
+        function init() {
+            initWebgl();
+            initShader();
+            initBuffer();
+            draw();
+            inittext(near,far)
+            initEvent();
+        }
+        function inittext(near,far){
+            document.getElementById("text").innerHTML = "near:"+near +"<br/>"+ "far:"+far;
+        }
+        function initEvent() {
+            document.onkeydown = handleKeyDown;
+        }
+        function handleKeyDown(event) {
+
+            if (String.fromCharCode(event.keyCode) == 'W') {
+                near += 1;
+            }
+            else if (String.fromCharCode(event.keyCode) == 'S') {
+                near -=1;
+            }
+            else if (String.fromCharCode(event.keyCode) == 'A') {
+                far -= 1;
+            }
+            else if (String.fromCharCode(event.keyCode) == 'D') {
+                far += 1;
+            }
+            inittext(near,far)
+            initBuffer();
+            draw();
+
+        }
+        function initWebgl() {
+            let webglDiv = document.getElementById('myCanvas');
+            webgl = webglDiv.getContext("webgl");
+            webgl.viewport(0, 0, webglDiv.clientWidth, webglDiv.clientHeight);
+
+        }
+        function initShader() {
+
+            let vsshader = webgl.createShader(webgl.VERTEX_SHADER);
+            let fsshader = webgl.createShader(webgl.FRAGMENT_SHADER);
+
+            webgl.shaderSource(vsshader, vertexstring);
+            webgl.shaderSource(fsshader, fragmentstring);
+
+            webgl.compileShader(vsshader);
+            webgl.compileShader(fsshader);
+            if (!webgl.getShaderParameter(vsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(vsshader);
+                alert(err);
+                return;
+            }
+            if (!webgl.getShaderParameter(fsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(fsshader);
+                alert(err);
+                return;
+            }
+            let program = webgl.createProgram();
+            webgl.attachShader(program, vsshader);
+            webgl.attachShader(program, fsshader)
+            webgl.linkProgram(program);
+            webgl.useProgram(program);
+            webgl.program = program
+
+        }
+        function initBuffer() {
+            let ProjMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ProjMatrix);
+            //out   left right bottom top  near far
+            glMatrix.mat4.ortho(ProjMatrix,-50,50,-100,100,near,far)    //修改可视域范围
+    
+            
+            let arr = [
+                0.0, 70, -40, 1,      1, 0,  0, 1,
+                -50, -30, -40, 1,     1, 0,  0, 1, // 绿色
+                50, -30, -40, 1,      1, 0,  0, 1,
+
+                50, 40, -20, 1, 1.0, 1.0,  0.4, 1,
+                -50, 40, -20, 1, 1.0, 1.0,  0.4, 1,
+                0.0, -60,-20, 1, 1.0, 1.0,  0.4, 1,// 黄色
+
+                0.0, 50, 0.0, 1,  0.4,  0.4, 1.0, 1,
+                -50, -50, 0.0, 1,  0.4,  0.4, 1.0, 1,
+                50, -50, 0.0, 1,  0.4,  0.4, 1.0, 1, // 蓝色
+
+
+            ]
+
+            let pointPosition = new Float32Array(arr);
+            let aPsotion = webgl.getAttribLocation(webgl.program, "a_position");
+            let triangleBuffer = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+            webgl.bufferData(webgl.ARRAY_BUFFER, pointPosition, webgl.STATIC_DRAW);
+            webgl.enableVertexAttribArray(aPsotion);
+            webgl.vertexAttribPointer(aPsotion, 4, webgl.FLOAT, false, 8 * 4, 0);
+            let aColor = webgl.getAttribLocation(webgl.program, "a_color");
+            webgl.enableVertexAttribArray(aColor);
+            webgl.vertexAttribPointer(aColor, 4, webgl.FLOAT, false, 8 * 4, 4 * 4);
+
+            let uniformMatrix1 = webgl.getUniformLocation(webgl.program, "u_formMatrix");
+            webgl.uniformMatrix4fv(uniformMatrix1, false, ProjMatrix)
+        }
+        function draw() {
+            webgl.clearColor(0.0, 1.0, 0.0, 1.0);
+            webgl.clear(webgl.COLOR_BUFFER_BIT);
+            webgl.drawArrays(webgl.TRIANGLES, 0, 9);
+        }
+      
+    </script>
+</head>
+
+<body onload="init()">
+    <canvas id='myCanvas' width="1024" height='768'></canvas>
+    <div id="text"></div>
+</body>
+
+</html>
