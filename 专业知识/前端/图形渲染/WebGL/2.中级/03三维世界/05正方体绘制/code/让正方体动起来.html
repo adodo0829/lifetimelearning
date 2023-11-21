@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="gl-matrix.js"></script>
+    <script>
+        let vertexstring = `
+        attribute vec4 a_position;
+        uniform mat4 u_formMatrix;
+        attribute vec4 a_color;
+        varying vec4 color;
+        attribute vec2 a_outUV;
+        varying vec2 v_inUV;
+        void main(void){
+            gl_Position = u_formMatrix * a_position;
+            color = a_color;
+            v_inUV = a_outUV;
+        }
+        `;
+        let fragmentstring = `
+        precision mediump float;
+        varying vec4 color;
+        uniform sampler2D texture;
+        varying vec2 v_inUV;
+        void main(void){
+          gl_FragColor =texture2D(texture, v_inUV);
+        }
+        `;
+
+        var webgl;
+        var angle = 45;
+        var webglDiv
+        var uniformTexture;
+        var texture;
+        var moveState;
+        var mouseDownX;
+        var mouseDownY;
+        var offsetX = 0;
+        var offsetY = 0;
+        var wheelMove = 0;
+        function init() {
+            initWebgl();
+            initShader();
+            initBuffer();
+            initEvent()
+        }
+
+        function initEvent() {
+            document.onmousedown = mouseDown;
+            document.onmousemove = mouseMove;
+            document.onmouseup = mouseUp;
+            document.onmousewheel = onmouseWheel;
+
+        }
+        function mouseDown(e) {
+            moveState = true;
+            mouseDownX = e.clientX;
+            mouseDownY = e.clientY;
+        }
+        function mouseMove(e) {
+            if (!moveState) {
+                return
+            } else {
+                offsetX = e.clientX - mouseDownX;
+                offsetY = e.clientY - mouseDownY;
+            }
+            initBuffer();
+        }
+        function mouseUp(e) {
+            moveState = false;
+        }
+        function onmouseWheel(e) {
+            wheelMove += e.wheelDelta / 100;
+            initBuffer();
+        }
+        function initWebgl() {
+            webglDiv = document.getElementById('myCanvas');
+            webgl = webglDiv.getContext("webgl");
+            webgl.viewport(0, 0, webglDiv.clientWidth, webglDiv.clientHeight);
+
+        }
+        function initShader() {
+
+            let vsshader = webgl.createShader(webgl.VERTEX_SHADER);
+            let fsshader = webgl.createShader(webgl.FRAGMENT_SHADER);
+
+            webgl.shaderSource(vsshader, vertexstring);
+            webgl.shaderSource(fsshader, fragmentstring);
+
+            webgl.compileShader(vsshader);
+            webgl.compileShader(fsshader);
+            if (!webgl.getShaderParameter(vsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(vsshader);
+                alert(err);
+                return;
+            }
+            if (!webgl.getShaderParameter(fsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(fsshader);
+                alert(err);
+                return;
+            }
+            let program = webgl.createProgram();
+            webgl.attachShader(program, vsshader);
+            webgl.attachShader(program, fsshader)
+            webgl.linkProgram(program);
+            webgl.useProgram(program);
+            webgl.program = program
+
+        }
+        function initBuffer() {
+
+            //    v6----- v5
+            //   /|      /|
+            //  v1------v0|
+            //  | |     | |
+            //  | |v7---|-|v4
+            //  |/      |/
+            //  v2------v3
+            //顶点数据准备
+            let arr = [
+
+
+                1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 0, 1, - 1, -1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, - 1, - 1, 1, 1, 0, 0, 1, - 1, 1, 1, 1, 0,   //前面
+
+                1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, -1, 1, 1, 0, 0, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, 0, 0, 1, -1, -1, 1, 1, 0,  //右
+
+                -1, 1, -1, 1, 1, 1, 1, 1, -1, 1, 0, 1, 1, -1, -1, 1, 0, 0, -1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 0, 0, -1, -1, -1, 1, 1, 0, //后
+
+
+                -1, 1, 1, 1, 1, 1, -1, 1, -1, 1, 1, 0, -1, -1, -1, 1, 0, 0, -1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 0, 0, -1, -1, 1, 1, 1, 0, //左
+
+                -1, 1, -1, 1, 0, 1, -1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, -1, 1, -1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, -1, 1, 1, 1,  //上
+
+                -1, -1, 1, 1, 0, 1, -1, -1, -1, 1, 0, 0, 1, -1, -1, 1, 1, 0, -1, -1, 1, 1, 0, 1, 1, -1, -1, 1, 1, 0, 1, -1, 1, 1, 1, 1,  //下
+
+
+            ]
+
+            let pointPosition = new Float32Array(arr);
+            let aPsotion = webgl.getAttribLocation(webgl.program, "a_position");
+            let triangleBuffer = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+            webgl.bufferData(webgl.ARRAY_BUFFER, pointPosition, webgl.STATIC_DRAW);
+            webgl.enableVertexAttribArray(aPsotion);
+            webgl.vertexAttribPointer(aPsotion, 4, webgl.FLOAT, false, 6 * 4, 0);
+
+            let attribOutUV = webgl.getAttribLocation(webgl.program, "a_outUV");
+            webgl.enableVertexAttribArray(attribOutUV);
+            webgl.vertexAttribPointer(attribOutUV, 2, webgl.FLOAT, false, 6 * 4, 4 * 4);
+
+            // 矩阵变换
+            // 投影矩阵： 视角
+            let ProjMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ProjMatrix);
+            //角度小，看到的物体大，角度大，看到的物体小。
+            glMatrix.mat4.perspective(ProjMatrix, angle * Math.PI / 180, webglDiv.clientWidth / webglDiv.clientHeight, 1, 1000)    //修改可视域范围
+
+            let uniformMatrix1 = webgl.getUniformLocation(webgl.program, "u_formMatrix");
+
+            // 模型矩阵：物体变换
+            let ModelMatrixx = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ModelMatrixx);
+            glMatrix.mat4.rotate(ModelMatrixx, ModelMatrixx, offsetX * Math.PI / 180, [0, 1, 0]);
+
+            let ModelMatrixy = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ModelMatrixy);
+            glMatrix.mat4.rotate(ModelMatrixy, ModelMatrixy, offsetY * Math.PI / 180, [1, 0, 0]);
+
+            let ModelMatrixxy = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ModelMatrixxy);
+            glMatrix.mat4.multiply(ModelMatrixxy, ModelMatrixx, ModelMatrixy);
+
+            let ModelMatrixWheel = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ModelMatrixWheel);
+            console.log(wheelMove);
+            glMatrix.mat4.translate(ModelMatrixWheel, ModelMatrixWheel, [0, 0, wheelMove]);
+            glMatrix.mat4.multiply(ModelMatrixWheel, ModelMatrixWheel, ModelMatrixxy);
+
+            // 视图矩阵， 相机
+            let ViewMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.identity(ViewMatrix);
+            glMatrix.mat4.lookAt(ViewMatrix, [0, 0, 10], [0, 0, 0], [0, 1, 0]);
+
+            let mvMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.identity(mvMatrix);
+            glMatrix.mat4.multiply(mvMatrix, ViewMatrix, ModelMatrixWheel);
+
+            let mvpMatrix = glMatrix.mat4.create();
+            glMatrix.mat4.identity(mvpMatrix);
+            glMatrix.mat4.multiply(mvpMatrix, ProjMatrix, mvMatrix);
+            webgl.uniformMatrix4fv(uniformMatrix1, false, mvpMatrix)
+            //纹理绘制
+            uniformTexture = webgl.getUniformLocation(webgl.program, "texture");
+            texture = initTexture("container2_specular.png");
+        }
+
+        function initTexture(imageFile) {
+            let textureHandle = webgl.createTexture();
+            textureHandle.image = new Image();
+            textureHandle.image.src = imageFile;
+            textureHandle.image.onload = function () {
+                handleLoadedTexture(textureHandle)
+            }
+            return textureHandle;
+        }
+        function handleLoadedTexture(texture) {
+            webgl.bindTexture(webgl.TEXTURE_2D, texture);
+            webgl.pixelStorei(webgl.UNPACK_FLIP_Y_WEBGL, 666);
+
+            webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, texture.image);
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.LINEAR);// 纹理放大方式
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.LINEAR);// 纹理缩小方式
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);// 纹理水平填充方式
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);// 纹理垂直填充方式
+
+
+            webgl.clearColor(0, 0, 0, 1);
+            webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+            webgl.enable(webgl.DEPTH_TEST);
+            webgl.activeTexture(webgl.TEXTURE0);
+            webgl.bindTexture(webgl.TEXTURE_2D, texture);
+            webgl.uniform1i(uniformTexture, 0);
+            webgl.drawArrays(webgl.TRIANGLES, 0, 36);
+        }
+
+    </script>
+</head>
+
+<body onload="init()">
+    <canvas id='myCanvas' width="1024" height='768'></canvas>
+    <div id="text"></div>
+</body>
+
+</html>
