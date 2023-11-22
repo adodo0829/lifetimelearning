@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绘制多重纹理（漂浮的云）</title>
+    <script src="glMatrix-0.9.6.min.js"></script>
+    <script>
+        let vertexstring = `
+        attribute vec4 a_position;
+        uniform   mat4    proj;
+        attribute vec2 outUV;
+        varying vec2 inUV;
+        void main(void){
+            gl_Position = proj *  a_position;
+            inUV = outUV;
+        }
+        `;
+        let fragmentstring = `
+        precision mediump float;
+        uniform sampler2D texture;
+        uniform sampler2D texture1;
+        uniform float anim;
+        varying vec2 inUV;
+        void main(void){
+          vec4 color1 =texture2D(texture,inUV);
+          vec4 color2 =texture2D(texture1, vec2(inUV.x + anim, inUV.y));
+
+          gl_FragColor = color1 + color2 ;
+        }
+        `;
+        var projMat4 = mat4.create();
+        var webgl;
+        var uniformTexture = 0;
+        var uniformTexture1 = 0;
+        var uniformAnim = 0;
+        var count = 0;
+        var texture0;
+        var texture1;
+        function webglStart() {
+            init();
+            tick();
+        }
+        function tick() {
+            requestAnimFrame(tick)
+            draw();
+        };
+        function init() {
+            initWebgl();
+            initShader();
+            initBuffer();
+
+        }
+        function initWebgl() {
+            let webglDiv = document.getElementById('myCanvas');
+            webgl = webglDiv.getContext("webgl");
+            webgl.viewport(0, 0, webglDiv.clientWidth, webglDiv.clientHeight);
+            mat4.ortho(0, webglDiv.clientWidth, webglDiv.clientHeight, 0, -1.0, 1.0, projMat4)
+        }
+        function initShader() {
+
+            let vsshader = webgl.createShader(webgl.VERTEX_SHADER);
+            let fsshader = webgl.createShader(webgl.FRAGMENT_SHADER);
+
+            webgl.shaderSource(vsshader, vertexstring);
+            webgl.shaderSource(fsshader, fragmentstring);
+
+            webgl.compileShader(vsshader);
+            webgl.compileShader(fsshader);
+            if (!webgl.getShaderParameter(vsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(vsshader);
+                alert(err);
+                return;
+            }
+            if (!webgl.getShaderParameter(fsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(fsshader);
+                alert(err);
+                return;
+            }
+            let program = webgl.createProgram();
+            webgl.attachShader(program, vsshader);
+            webgl.attachShader(program, fsshader)
+
+            webgl.linkProgram(program);
+            webgl.useProgram(program);
+
+            webgl.program = program
+        }
+        function initBuffer() {
+            let arr = [
+                0, 0, 0, 1, 0, 0,
+                0, 500, 0, 1, 0, 1,
+                500, 0, 0, 1, 1, 0,
+
+                500, 0, 0, 1, 1, 0,
+                0, 500, 0, 1, 0, 1,
+                500, 500, 0, 1, 1, 1,
+            ]
+            let pointPosition = new Float32Array(arr);
+            let aPsotion = webgl.getAttribLocation(webgl.program, "a_position");
+            let triangleBuffer = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+            webgl.bufferData(webgl.ARRAY_BUFFER, pointPosition, webgl.STATIC_DRAW);
+            webgl.enableVertexAttribArray(aPsotion);
+            webgl.vertexAttribPointer(aPsotion, 4, webgl.FLOAT, false, 6 * 4, 0);
+
+            let uniformProj = webgl.getUniformLocation(webgl.program, "proj");
+            webgl.uniformMatrix4fv(uniformProj, false, projMat4);
+
+            attribOutUV = webgl.getAttribLocation(webgl.program, "outUV");
+            webgl.enableVertexAttribArray(attribOutUV);
+            webgl.vertexAttribPointer(attribOutUV, 2, webgl.FLOAT, false, 6 * 4, 4 * 4);
+
+
+            uniformTexture = webgl.getUniformLocation(webgl.program, "texture");
+            uniformTexture1 = webgl.getUniformLocation(webgl.program, "texture1");
+
+            texture1 = initTexture("fog.png");
+            texture0 = initTexture("山水.png");
+            // webgl.bindTexture(webgl.TEXTURE_2D, texture0);
+            // webgl.bindTexture(webgl.TEXTURE_2D, texture1);
+
+        }
+        function handleLoadedTexture(texture) {
+
+
+            webgl.bindTexture(webgl.TEXTURE_2D, texture);
+            webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, texture.image);
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.LINEAR);
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.LINEAR);
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.REPEAT);
+            webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.REPEAT);
+
+            // webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+            // webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+        }
+        function initTexture(imageFile, num) {
+            let textureHandle = webgl.createTexture();
+            textureHandle.image = new Image();
+            textureHandle.image.src = imageFile;
+            textureHandle.image.onload = function () {
+                handleLoadedTexture(textureHandle, num)
+            }
+            return textureHandle;
+        }
+        function draw() {
+            webgl.clearColor(0.0, 1.0, 0.0, 1.0);
+            webgl.clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT);
+            webgl.enable(webgl.DEPTH_TEST);
+
+
+
+            //纹理变动
+            uniformAnim = webgl.getUniformLocation(webgl.program, "anim");
+            count = count + 0.01;
+            webgl.uniform1f(uniformAnim, count);
+            
+            webgl.activeTexture(webgl.TEXTURE0);
+            webgl.bindTexture(webgl.TEXTURE_2D, texture0);
+            webgl.uniform1i(uniformTexture, 0);
+
+            webgl.activeTexture(webgl.TEXTURE1);
+            webgl.bindTexture(webgl.TEXTURE_2D, texture1);
+            webgl.uniform1i(uniformTexture1, 1);
+
+            webgl.drawArrays(webgl.TRIANGLES, 0, 6);
+        }
+        window.requestAnimFrame = (function () {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function (callback, element) {
+                    window.setTimeout(callback, 1000 / 60);
+                };
+        })();
+    </script>
+</head>
+
+<body onload="webglStart()">
+    <canvas id='myCanvas' width="1024" height='768'></canvas>
+</body>
+
+</html>
