@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gl.drawArrays()和gl.TRIANGLES </title>
+    <!-- <script src="https://greggman.github.io/webgl-lint/webgl-lint.js"></script> -->
+    <!-- <script src="glMatrix-0.9.6.min.js"></script> -->
+    <script>
+        let vertexstring = `
+        attribute vec4 a_position;
+        void main(void){
+            gl_Position =  a_position;
+        }
+        `;
+        let fragmentstring = `
+        void main(void){
+          gl_FragColor =vec4(1.0,1.0,0.0,1.0) ;
+        }
+        `
+        var webgl;
+
+
+        function init() {
+            initWebgl();
+            initShader();
+            initBuffer();
+            draw();
+        }
+        function initWebgl() {
+            let webglDiv = document.getElementById('myCanvas');
+            webgl = webglDiv.getContext("webgl");
+            webgl.viewport(0, 0, webglDiv.clientWidth, webglDiv.clientHeight);
+        }
+        function initShader() {
+
+            let vsshader = webgl.createShader(webgl.VERTEX_SHADER);
+            let fsshader = webgl.createShader(webgl.FRAGMENT_SHADER);
+
+            webgl.shaderSource(vsshader, vertexstring);
+            webgl.shaderSource(fsshader, fragmentstring);
+
+            webgl.compileShader(vsshader);
+            webgl.compileShader(fsshader);
+            if (!webgl.getShaderParameter(vsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(vsshader);
+                alert(err);
+                return;
+            }
+            if (!webgl.getShaderParameter(fsshader, webgl.COMPILE_STATUS)) {
+                var err = webgl.getShaderInfoLog(fsshader);
+                alert(err);
+                return;
+            }
+            let program = webgl.createProgram();
+            webgl.attachShader(program, vsshader);
+            webgl.attachShader(program, fsshader)
+
+            webgl.linkProgram(program);
+            webgl.useProgram(program);
+
+            webgl.program = program;
+        }
+        function initBuffer() {
+            let arr = [
+                -0.5, 0.5, 0, 1,
+                -0.5, 0, 0, 1,
+                0, 0.5, 0, 1,
+                0, 0.5, 0, 1,
+                -0.5, 0, 0, 1,
+                0, 0, 0, 1,
+                0, 0.5, 0, 1,
+                0, 0, 0, 1,
+                0.5, 0.5, 0, 1,
+                0.5, 0.5, 0, 1,
+                0, 0, 0, 1,
+                0.5, 0, 0, 1,
+                -0.5, 0, 0, 1,
+                -0.5, -0.5, 0, 1,
+                0, 0, 0, 1,
+                0, 0, 0, 1,
+                -0.5, -0.5, 0, 1,
+                0, -0.5, 0, 1,
+                0, 0, 0, 1,
+                0, -0.5, 0, 1,
+                0.5, 0, 0, 1,
+                0.5, 0, 0, 1,
+                0, -0.5, 0, 1,
+                0.5, -0.5, 0, 1
+            ]
+
+            let pointPosition = new Float32Array(arr);
+            let aPsotion = webgl.getAttribLocation(webgl.program, "a_position");
+            let triangleBuffer = webgl.createBuffer();
+            webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+            webgl.bufferData(webgl.ARRAY_BUFFER, pointPosition, webgl.STATIC_DRAW);
+            webgl.enableVertexAttribArray(aPsotion);
+            webgl.vertexAttribPointer(aPsotion, 4, webgl.FLOAT, false, 4 * 4, 0);
+            compute(arr);
+        }
+
+        function draw() {
+            webgl.clearColor(0.0, 1.0, 0.0, 1.0);
+            webgl.clear(webgl.COLOR_BUFFER_BIT );
+            webgl.drawArrays(webgl.TRIANGLES,0,24);
+        }
+
+        function compute(PositionArr,IndexArr=[]){
+           let byteLength =   PositionArr.length*4 + IndexArr.length*2;
+           document.getElementById("content").innerText =`总字节数:${byteLength}` ;
+        }
+
+    </script>
+</head>
+
+<body onload="init()">
+    <canvas id='myCanvas' width="1024" height='900'></canvas>
+    <div id="content" style="width: 20%;height: 15px;float:right;"></div>
+</body>
+
+</html>

@@ -14,8 +14,8 @@ import WebGL03 from "@/pages/WebGL/Chaptor03/index.vue";
 import WebGL04 from "@/pages/WebGL/Chaptor04/index.vue";
 import WebGL05 from "@/pages/WebGL/Chaptor05/index.vue";
 
-import WebGL_M from "@/pages/WebGL_M/index.vue";
-import WebGL_M_01 from "@/pages/WebGL_M/01/index.vue";
+import Three from "@/pages/Three/index.vue";
+import Three01 from "@/pages/Three/01/index.vue";
 
 const router = createRouter({
   history: routerHistory,
@@ -76,14 +76,14 @@ const router = createRouter({
       ],
     },
     {
-      path: "/webgl-m",
-      name: "WebGL-Mid",
-      component: WebGL_M,
+      path: "/Three",
+      name: "Three",
+      component: Three,
       children: [
         {
-          path: "/webgl-m-01",
-          name: "多重纹理",
-          component: WebGL_M_01,
+          path: "/Three01",
+          name: "1111",
+          component: Three01,
         },
       ],
     },
