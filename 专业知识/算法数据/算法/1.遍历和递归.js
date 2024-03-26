@@ -134,3 +134,80 @@ function forLoopRecur(n) {
 // 降低时间复杂度通常需要以提升空间复杂度为代价，反之亦然。我们将牺牲内存空间来提升算法运行速度的思路称为“以空间换时间”；反之，则称为“以时间换空间”。
 // 选择哪种思路取决于我们更看重哪个方面。在大多数情况下，时间比空间更宝贵，因此“以空间换时间”通常是更常用的策略。当然，在数据量很大的情况下，控制空间复杂度也非常重要
 // 暂存空间可分为暂存数据、栈帧空间和指令空间，其中栈帧空间通常仅在递归函数中影响空间复杂度
+
+let tree = [
+  {
+    id: 1,
+    title: "节点1",
+    children: [
+      {
+        id: 11,
+        title: "节点1-1",
+        children: [
+          {
+            id: 111,
+            title: "节点111",
+          },
+        ],
+      },
+      {
+        id: 12,
+        title: "节点12",
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "节点2",
+    children: [
+      {
+        id: 21,
+        title: "节点21",
+      },
+    ],
+  },
+];
+
+function getOddNodes(tree, res = []) {
+  if (!tree.length) return res;
+
+  let queue = [...tree];
+  let currNode = queue.shift();
+
+  while (currNode) {
+    const { id, children } = currNode;
+    if (id % 2 !== 0) {
+      res.push(id);
+    }
+    children.length && queue.push(...children);
+  }
+  console.log(res);
+}
+
+getOddNodes(tree);
+
+// 非递归要用到栈这种数据结构，每个出栈的节点，要对其子节点按照后进先出的原则入栈：
+function depthFirstTraversal(root, arr = []) {
+  if (!root) return arr;
+  let stack = [root],
+    current;
+  while ((current = stack.pop())) {
+    const { element, children } = current;
+    arr.push(element);
+    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
+  }
+  return arr;
+}
+
+// 层序遍历，这里要用到队列这种数据结构，先进先出
+function breadthFirstTraversal(root, arr = []) {
+  if (!root) return;
+  let queue = [root],
+    current;
+  while ((current = queue.shift())) {
+    const { element, children } = current;
+    arr.push(element);
+    queue.push(...children);
+  }
+  return arr;
+}
