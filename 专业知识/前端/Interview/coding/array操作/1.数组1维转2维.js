@@ -28,3 +28,21 @@ function transformArray(arr) {
 
 let array = [1, 2, 3, 4, 5, 6, 7, 8];
 transformArray(array);
+
+function chunk(input, size) {
+  size = Math.max(toInteger(size), 0);
+  if (!Array.isArray(input)) {
+    return [];
+  }
+  if (size < 1) {
+    return [];
+  }
+  const n = input.length;
+  const result = [];
+  let start = 0; // 遍历自增+n
+  while (start < n) {
+    result.push(input.slice(start, start + size));
+    start += size;
+  }
+  return result;
+}
