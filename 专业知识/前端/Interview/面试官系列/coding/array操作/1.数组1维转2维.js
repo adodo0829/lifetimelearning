@@ -1,12 +1,21 @@
 /**
- * 实现一个chunk函数
- * 将一维数组转化二维分段数组
+ * 实现一个chunk函数, chunk(arr, n)
+ * 将一维数组转化二维的分段数组, n为内层数组最大长度，不够长度时自动补到最后位
  * [1,2,3,4,5,6,7] => [[1,2,3], [4,5,6], [7]]
  */
-
+function chunk(arr, n) {
+  let res = [];
+  // ===== TODO ======
+  return res;
+}
 let arr = [1, 2, 3, 4, 5, 6, 7];
-// chunk(arr, 3); // [[1,2,3], [4,5,6], [7]]
+// 当n=3时
+chunk(arr, 3); // [[1,2,3], [4,5,6], [7]]
+// 当n=2时
+chunk(arr, 2); // [[1,2], [3，4], [5,6], [7]]
 
+
+// ===== array的slice切片用法
 function transformArray(arr) {
   if (!Array.isArray(arr)) return;
   const { length } = arr;
@@ -29,7 +38,7 @@ function transformArray(arr) {
 let array = [1, 2, 3, 4, 5, 6, 7, 8];
 transformArray(array);
 
-function chunk(input, size) {
+function chunk1(input, size) {
   size = Math.max(toInteger(size), 0);
   if (!Array.isArray(input)) {
     return [];
