@@ -16,4 +16,3 @@ new Promise(function (resolve) {
 console.log("d");
 
 
-// 考察宏任务微任务执行机制
